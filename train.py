@@ -77,4 +77,4 @@ def train_and_evaluate(dataset_path):
     print(f"Results saved in: {results_dir}")
     print(f"Model saved as: {model_path}")
 
-train_and_evaluate("./Data/drug202.csv")
+# train_and_evaluate("./Data/drug202.csv")

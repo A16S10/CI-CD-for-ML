@@ -2,42 +2,52 @@ pipeline {
     agent any
 
     environment {
-        PYTHON = 'python3.11.7'  
+        PYTHON = '/usr/local/bin/python3.11'  
     }
-
+    
     stages {
         stage('Setup Environment') {
             steps {
                 sh '''
-                    python -m venv venv  # Create a virtual environment
-                    . venv/bin/activate   # Activate the virtual environment
+                    ${PYTHON} -m venv venv  # Create a virtual environment
+                    . venv/bin/activate
                     pip install --upgrade pip
                     pip install -r requirements.txt  # Install dependencies
                 '''
             }
         }
 
-        stage('Run Training Script') {
+        stage('Load Datasets') {
             steps {
-                sh '''
-                    . venv/bin/activate
-                    python train.py  # Run the training script
-                '''
+                script {
+                    def datasets = [
+                        "/var/lib/jenkins/workspace/CI-CD-for-ML/Data/drug200.csv", 
+                        "/var/lib/jenkins/workspace/CI-CD-for-ML/Data/dataset201.csv", 
+                        "/var/lib/jenkins/workspace/CI-CD-for-ML/Data/dataset202.csv"
+                    ] 
+                    
+                    for (dataset in datasets) {
+                        echo "Processing ${dataset}"
+                        sh """
+                            . venv/bin/activate 
+                            ${PYTHON} train.py "${dataset}"  # Call your training script with the dataset path as an argument
+                        """
+                    }
+                }
             }
         }
-
+        
         stage('Archive Results') {
             steps {
-                archiveArtifacts artifacts: 'Results/*', allowEmptyArchive: true  // Archive metrics and plots
-                archiveArtifacts artifacts: 'Model/*', allowEmptyArchive: true    // Archive the model
+                archiveArtifacts artifacts: 'Results/**/metrics.txt', fingerprint: true  // Archive all metrics files generated during training
+                archiveArtifacts artifacts: 'Model/**/*.pkl', fingerprint: true  // Archive all saved models
             }
         }
-    }
-
-    post {
-        always {
-            // Clean up virtual environment
-            deleteDir()
+        
+        stage('Notify') {
+            steps {
+                echo 'Training and evaluation completed for all datasets.'
+            }
         }
     }
 }
