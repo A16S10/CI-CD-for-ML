@@ -1,18 +1,25 @@
-install:
-    pip install --upgrade pip &&\
-        pip install -r requirements.txt
-
-format:
-    black *.py
-
-train:
-    python train.py
-
-eval:
-    echo "## Model Metrics" > report.md
-    cat ./Results/metrics.txt >> report.md
-   
-    echo '\n## Confusion Matrix Plot' >> report.md
-    echo '![Confusion Matrix](./Results/model_results.png)' >> report.md
-   
-    cml comment create report.md
+name: Continuous Integration
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  
+permissions: write-all
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: iterative/setup-cml@v2
+      - name: Install Packages
+        run: make install
+      - name: Format
+        run: make format
+      - name: Train
+        run: make train
+      - name: Evaluation
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make eval

@@ -1,75 +1,80 @@
+import os
 import pandas as pd
-
-drug_df = pd.read_csv("./Data/drug200.csv")
-drug_df.head()
-
-
-from sklearn.model_selection import train_test_split
-
-X = drug_df.drop("Drug", axis=1).values
-y = drug_df.Drug.values
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=125
-)
-
-
+import pickle
+import matplotlib.pyplot as plt
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+import datetime
 
-cat_col = [1,2,3]
-num_col = [0,4]
+def train_and_evaluate(dataset_path):
+    # Load the dataset
+    drug_df = pd.read_csv(dataset_path)
+    drug_df.head()
 
-transform = ColumnTransformer(
-    [
-        ("encoder", OrdinalEncoder(), cat_col),
-        ("num_imputer", SimpleImputer(strategy="median"), num_col),
-        ("num_scaler", StandardScaler(), num_col),
-    ]
-)
-pipe = Pipeline(
-    steps=[
-        ("preprocessing", transform),
-        ("model", RandomForestClassifier(n_estimators=100, random_state=125)),
-    ]
-)
-pipe.fit(X_train, y_train)
+    # Split features and labels
+    X = drug_df.drop("Drug", axis=1).values
+    y = drug_df.Drug.values
 
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=125)
 
-from sklearn.metrics import accuracy_score, f1_score
+    # Specify categorical and numerical columns
+    cat_col = [1, 2, 3]
+    num_col = [0, 4]
 
-predictions = pipe.predict(X_test)
-accuracy = accuracy_score(y_test, predictions)
-f1 = f1_score(y_test, predictions, average="macro")
+    # Create preprocessing and model pipeline
+    transform = ColumnTransformer(
+        [
+            ("encoder", OrdinalEncoder(), cat_col),
+            ("num_imputer", SimpleImputer(strategy="median"), num_col),
+            ("num_scaler", StandardScaler(), num_col),
+        ]
+    )
+    pipe = Pipeline(
+        steps=[
+            ("preprocessing", transform),
+            ("model", RandomForestClassifier(n_estimators=100, random_state=125)),
+        ]
+    )
 
-print("Accuracy:", str(round(accuracy, 2) * 100) + "%", "F1:", round(f1, 2))
+    # Train the model
+    pipe.fit(X_train, y_train)
 
+    # Make predictions
+    predictions = pipe.predict(X_test)
 
-with open("Results/metrics.txt", "w") as outfile:
-    outfile.write(f"Accuracy = {round(accuracy, 2)}, F1 Score = {round(f1, 2)}"
+    # Calculate metrics
+    accuracy = accuracy_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions, average="macro")
 
-)
+    print(f"Accuracy: {round(accuracy * 100, 2)}%, F1: {round(f1, 2)}")
+
+    # Extract dataset name (without extension) and current timestamp
+    dataset_name = os.path.splitext(os.path.basename(dataset_path))[0]
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
-import matplotlib.pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+    # Create a unique results directory based on dataset name and timestamp
+    results_dir = os.path.join("Results", f"{dataset_name}_{timestamp}")
+    os.makedirs(results_dir, exist_ok=True)
 
-cm = confusion_matrix(y_test, predictions, labels=pipe.classes_)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=pipe.classes_)
-disp.plot()
-plt.savefig("Results/model_results.png", dpi=120)
+    # Save metrics to a text file
+    metrics_path = os.path.join(results_dir, "metrics.txt")
+    with open(metrics_path, "w") as outfile:
+        outfile.write(f"Accuracy = {round(accuracy * 100, 2)}%, F1 Score = {round(f1, 2)}\n")
 
+    
+    # Save the model pipeline to a file using pickle
+    model_path = os.path.join("Model", f"{dataset_name}_pipeline_{timestamp}.pkl")
+    os.makedirs("Model", exist_ok=True)  # Ensure Model directory exists
+    with open(model_path, "wb") as model_file:
+        pickle.dump(pipe, model_file)
 
-import pickle
+    print(f"Results saved in: {results_dir}")
+    print(f"Model saved as: {model_path}")
 
-# Save metrics to a text file
-with open("Results/metrics.txt", "w") as outfile:
-    outfile.write(f"Accuracy = {round(accuracy, 2)}, F1 Score = {round(f1, 2)}")
-
-# Save the model pipeline to a file using pickle
-with open("Model/drug_pipeline.pkl", "wb") as model_file:
-    pickle.dump(pipe, model_file)
-
-
+train_and_evaluate("./Data/drug202.csv")
