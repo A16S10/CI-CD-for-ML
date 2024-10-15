@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         WORKSPACE_DIR = '/var/lib/jenkins/workspace/CI-CD-for-ML'
-        DATASET_PATH = '/var/lib/jenkins/workspace/CI-CD-for-ML/Data/drug200.csv'
+        DATASET_PATH = '/var/lib/jenkins/workspace/CI-CD-for-ML/Data/'
     }
 
     stages {

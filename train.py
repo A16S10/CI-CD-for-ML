@@ -11,7 +11,19 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 import datetime
 
+def list_of_datasets(data_directory):
+    """List all dataset files in the specified directory."""
+    dataset_files = os.listdir(data_directory)
+    dataset_paths = [os.path.join(data_directory, dataset_file) for dataset_file in dataset_files]
+    
+    print("Datasets found:")
+    for dataset_file in dataset_files:
+        print(dataset_file)
+    
+    return dataset_paths
+
 def train_and_evaluate(dataset_path):
+    """Train and evaluate the model using the specified dataset."""
     # Load the dataset
     drug_df = pd.read_csv(dataset_path)
     drug_df.head()
@@ -78,12 +90,18 @@ def train_and_evaluate(dataset_path):
     print(f"Model saved as: {model_path}")
 
 if __name__ == "__main__":
-    # Ensure the dataset path is passed correctly
+    # Ensure the dataset directory is passed correctly
     import sys
     if len(sys.argv) > 1:
-        dataset_path = sys.argv[1]
+        data_directory = sys.argv[1]
     else:
-        print("Error: No dataset path provided.")
+        print("Error: No dataset directory provided.")
         sys.exit(1)
-
-    train_and_evaluate(dataset_path)
+    
+    # Step 1: List all datasets
+    dataset_paths = list_of_datasets(data_directory)
+    
+    # Step 2: Train and evaluate each dataset
+    for dataset_path in dataset_paths:
+        print(f"\nProcessing dataset: {dataset_path}")
+        train_and_evaluate(dataset_path)
