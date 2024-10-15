@@ -1,95 +1,35 @@
 import os
-import pandas as pd
-import pickle
-import matplotlib.pyplot as plt
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OrdinalEncoder, StandardScaler
-import datetime
 
-def train_and_evaluate(dataset_path):
-    # Load the dataset
-    drug_df = pd.read_csv(dataset_path)
-    drug_df.head()
-
-    # Split features and labels
-    X = drug_df.drop("Drug", axis=1).values
-    y = drug_df.Drug.values
-
-    # Train/test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=125)
-
-    # Specify categorical and numerical columns
-    cat_col = [1, 2, 3]
-    num_col = [0, 4]
-
-    # Create preprocessing and model pipeline
-    transform = ColumnTransformer(
-        [
-            ("encoder", OrdinalEncoder(), cat_col),
-            ("num_imputer", SimpleImputer(strategy="median"), num_col),
-            ("num_scaler", StandardScaler(), num_col),
-        ]
-    )
-    pipe = Pipeline(
-        steps=[
-            ("preprocessing", transform),
-            ("model", RandomForestClassifier(n_estimators=100, random_state=125)),
-        ]
-    )
-
-    # Train the model
-    pipe.fit(X_train, y_train)
-
-    # Make predictions
-    predictions = pipe.predict(X_test)
-
-    # Calculate metrics
-    accuracy = accuracy_score(y_test, predictions)
-    f1 = f1_score(y_test, predictions, average="macro")
-
-    print(f"Accuracy: {round(accuracy * 100, 2)}%, F1: {round(f1, 2)}")
-
-    # Extract dataset name (without extension) and current timestamp
-    dataset_name = os.path.splitext(os.path.basename(dataset_path))[0]
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    
+try:
+    dataset_files = os.listdir("./Data")
+    print(dataset_files)
+except FileNotFoundError:
+    print("Error: The directory './Data' does not exist.")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
 
 
 
-    # Get the workspace directory from environment variable
-    workspace_dir = os.getenv('WORKSPACE', '.')
+import os
 
-    # Create a unique results directory based on dataset name and timestamp
-    results_dir = os.path.join(workspace_dir, "Results", f"{dataset_name}_{timestamp}")
-    os.makedirs(results_dir, exist_ok=True)
-
-    # Save the model pipeline to a file using pickle
-    # model_dir = os.path.join(workspace_dir, "Model")
-    # os.makedirs(model_dir, exist_ok=True)
-    # model_path = os.path.join(model_dir, f"{dataset_name}_pipeline_{timestamp}.pkl")
+# import os
+# dataset_files = os.listdir("./Data")
+# dataset_files
 
 
-        # Save the model pipeline to a file using pickle
-    model_path = os.path.join("Model", f"{dataset_name}_pipeline_{timestamp}.pkl")
-    os.makedirs("Model", exist_ok=True)  # Ensure Model directory exists
-    with open(model_path, "wb") as model_file:pickle.dump(pipe, model_file)
 
 
-    print(f"Results saved in: {results_dir}")
-    print(f"Model saved as: {model_path}")
+# def train_and_evaluate(dataset_path):
+#     # List all files in the specified dataset path
+#     dataset_files = os.listdir(dataset_path)
 
-if __name__ == "__main__":
-    # Ensure the dataset path is passed correctly
-    import sys
-    if len(sys.argv) > 1:
-        dataset_path = sys.argv[1]
-    else:
-        print("Error: No dataset path provided.")
-        sys.exit(1)
+#     # Print each file name one below the other
+#     for dataset_file in dataset_files:
+#         print(dataset_file)
 
-    train_and_evaluate(dataset_path)
+
+# # Example usage
+# dataset_path = "./Results"
+
+# train_and_evaluate(dataset_path)
+

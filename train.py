@@ -11,9 +11,17 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 import datetime
 
-def train_and_evaluate(dataset_path):
+def train_and_evaluate(dataset):
+    #print name of datset
+    print(f"Reading dataset: {dataset}")
     # Load the dataset
-    drug_df = pd.read_csv(dataset_path)
+   
+    if os.path.exists(dataset):
+        drug_df = pd.read_csv(dataset)
+    else:
+        print(f"Error: Dataset file does not exist: {dataset}")
+        sys.exit(1)  # Exit if the file is not found
+
     drug_df.head()
 
     # Split features and labels
@@ -55,7 +63,7 @@ def train_and_evaluate(dataset_path):
     print(f"Accuracy: {round(accuracy * 100, 2)}%, F1: {round(f1, 2)}")
 
     # Extract dataset name (without extension) and current timestamp
-    dataset_name = os.path.splitext(os.path.basename(dataset_path))[0]
+    dataset_name = os.path.splitext(os.path.basename(dataset))[0]
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
     # Create a unique results directory based on dataset name and timestamp
@@ -81,9 +89,10 @@ if __name__ == "__main__":
     # Ensure the dataset path is passed correctly
     import sys
     if len(sys.argv) > 1:
-        dataset_path = sys.argv[1]
+        dataset = sys.argv[1]
     else:
         print("Error: No dataset path provided.")
         sys.exit(1)
 
-    train_and_evaluate(dataset_path)
+    train_and_evaluate(dataset)
+
