@@ -77,4 +77,13 @@ def train_and_evaluate(dataset_path):
     print(f"Results saved in: {results_dir}")
     print(f"Model saved as: {model_path}")
 
-# train_and_evaluate("./Data/drug202.csv")
+if __name__ == "__main__":
+    # Ensure the dataset path is passed correctly
+    import sys
+    if len(sys.argv) > 1:
+        dataset_path = sys.argv[1]
+    else:
+        print("Error: No dataset path provided.")
+        sys.exit(1)
+
+    train_and_evaluate(dataset_path)
